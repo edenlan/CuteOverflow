@@ -1,0 +1,76 @@
+@startuml
+left to right direction
+
+actor Patient
+actor Secretary
+actor Dentist
+actor "Clinic Manager" as Manager
+actor ""Supir" System" as Supir
+actor "Ministry of Health" as Ministry
+
+Manager -|> Dentist
+
+rectangle DentalCare {
+  ' Patient '
+  usecase "View Profile" as UC_ViewProfile
+  usecase "View Treatment History" as UC_ViewHistory
+  usecase "View Upcoming Appointments" as UC_ViewUpcoming
+  usecase "Track Treatment Plans" as UC_TrackPlans
+
+  usecase "Book Appointment" as UC_BookAppointment
+  usecase "Approve Appointment" as UC_ApproveAppointment
+  usecase "Cancel Appointment" as UC_CancelAppointment
+  usecase "Reschedule Appointment" as UC_RescheduleAppointment
+  
+  ' Secretary '
+  usecase "Track Inventory" as UC_TrackInventory
+  usecase "Submit Monthly Appointment Report" as UC_SubmitReport
+
+  ' Dentist '
+  usecase "Create Personalized Plan" as UC_CreatePlan
+  usecase "View Active Treatment Plan" as UC_ViewPlan
+  usecase "Update Treatment Plan" as UC_UpdatePlan
+  usecase "Generate Treatment Progress Report" as UC_TreatmentProgressReport
+
+  ' Manager '
+  usecase "Generate Revenue Report" as UC_RevenueReport
+  usecase "Generate Inventory Usage Report" as UC_InventoryUsageReport
+  usecase "Manage Stock Level" as UC_ManageStock
+
+  ' Supir '
+  usecase "Update Inventory Records" as UC_UpdateInventory
+
+  ' Ministry '
+  usecase "Receive Monthly Appointment Data Report (JSON)" as UC_ReceiveJSON
+  usecase "Forward Data to Insurance Funds" as UC_ForwardInsurance
+}
+
+Patient --> UC_ViewProfile
+Patient --> UC_ViewHistory
+Patient --> UC_ViewUpcoming
+Patient --> UC_TrackPlans
+Patient --> UC_BookAppointment
+
+UC_ApproveAppointment .u.> UC_BookAppointment : <<extend>>
+UC_CancelAppointment .u.> UC_BookAppointment : <<extend>>
+UC_RescheduleAppointment .u.> UC_BookAppointment : <<extend>>
+
+Secretary --> UC_BookAppointment
+Secretary --> UC_TrackInventory
+Secretary --> UC_SubmitReport
+
+Dentist --> UC_CreatePlan
+Dentist --> UC_ViewPlan
+Dentist --> UC_UpdatePlan
+Dentist --> UC_TreatmentProgressReport
+
+Manager --> UC_RevenueReport
+Manager --> UC_InventoryUsageReport
+Manager --> UC_ManageStock
+
+Supir --> UC_UpdateInventory
+
+Ministry --> UC_ReceiveJSON
+Ministry --> UC_ForwardInsurance
+
+@enduml
