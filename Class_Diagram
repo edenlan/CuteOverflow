@@ -1,0 +1,284 @@
+@startuml
+
+' ========== ENUMS ==========
+enum Reasons {
+  Routine Cleaning
+  Cavity Filling
+  Toothache
+  Root Canal
+  Dental Checkup
+  Teeth Whitening
+  Braces Consultation
+  Wisdom Tooth Removal
+  Dental Implant FollowUp
+  Gum Treatment
+  Dental XRay
+  Broken Tooth
+  Crown Fitting
+  Denture Adjustment
+  Mouthguard Fitting
+}
+
+enum AppointmentStatus {
+  Approved
+  Cancelled
+  Waiting
+}
+
+enum PlanTreatmentsStatus {
+  Active
+  Completed
+  Cancelled
+}
+
+enum Roles {
+  Dentist
+  Hygienist
+  Manager
+  Secretary
+}
+
+enum ItemCategories {
+  Tools
+  Consumables
+}
+
+enum PaymentMethods {
+  Credit
+  Cash
+  Cheque
+  BankTransfer
+}
+
+enum Specializations {
+  Orthodontist
+  Periodontics
+  General
+}
+
+enum Qualifications {
+  BA
+  MA
+  PhD
+  RDH
+  DDS
+}
+
+' ========== CLASSES ==========
+
+class Patients {
+  +patientID: int
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  emailAddress: String
+  birthDate: Date
+  assignedDentistID: int
+  --
+  +viewTreatmentHistory(): void
+  +viewUpcomingAppointments(): void
+  +viewProfile(): String
+  +bookAppointment(): void
+  +approveAppointment(appointmentID): void
+  +cancelAppointment(): void
+  +rescheduleAppointment(): void
+}
+
+class Appointments {
+  +appointmentID: int
+  patientID: int
+  appointmentDate: Date
+  appointmentTime: Time
+  staffID: int
+  reasonForVisit: String
+  Status: AppointmentStatus
+  reminderSent: boolean
+  --
+  +sendReminder(): void
+  +approve(): void
+  +cancel(): void
+  +reschedule(): void
+  +assignStaff(staff: Staff): Staff
+}
+
+class MedicalHistories {
+  +conditionID: int
+  patientID: int
+  conditionName: String
+}
+
+class DentalHistories {
+  +historyID: int
+  patientID: int
+  notes: String
+}
+
+class DentalHistoryTreatments {
+  +historyTreatmentID: int
+  historyID: int
+  treatmentID: int
+  treatmentDate: Date
+  notes: String
+}
+
+class InsuranceDetails {
+  +insuranceID: int
+  patientID: int
+  providerName: String
+  policyNumber: String
+}
+
+class Plans {
+  +planID: int
+  startDate: Date
+  endDate: Date
+  patientID: int
+  totalCost: double
+  --
+  +calculateTotalCost(): double
+}
+
+class PlanTreatments {
+  +planTreatmentID: int
+  planID: int
+  treatmentID: int
+  staffID: int
+  treatmentDate: Date
+  Status: PlanTreatmentsStatus
+  --
+  +addTreatment(): void
+  +updateStatus(): void
+}
+
+class Treatments {
+  +treatmentID: int
+  treatmentName: String
+  description: String
+  cost: double
+}
+
+class Invoices {
+  +invoiceID: int
+  patientID: int
+  planID: int
+  invoiceDate: Date
+  cost: double
+  isPaid: boolean
+  paymentMethod: PaymentMethods
+  notes: String
+  --
+  +generateInvoice(): void
+  +markAsPaid(): void
+}
+
+class Items {
+  +itemSerialNumber: int
+  itemName: String
+  itemDescription: String
+  itemCategory: ItemCategories
+  quantityInStock: int
+  expirationDate: Date
+  supplierName: String
+  --
+  +isLowStock(): boolean
+  +isNearExpiration(): boolean
+  +isExpired(): boolean
+  +updateStock(): void
+}
+
+class Schedules {
+  +scheduleID: int
+  staffID: int
+  dayOfWeek: String
+  startTime: Time
+  endTime: Time
+}
+
+abstract class Staff {
+  +staffID: int
+  firstName: String
+  lastName: String
+  role: Roles
+  phoneNumber: String
+  emailAddress: String
+  qualification: Qualifications
+  workSchedule: String
+  --
+  +viewProfile(): String
+  +viewSchedule(): String
+}
+
+class Dentists extends Staff {
+  specialization: Specializations
+  --
+  +createTreatmentPlan(): void
+}
+
+class Managers extends Dentists {
+  +updateInventoryFromXML(): void
+  +generateRevenueReport(): void
+  +generateInventoryUsageReport(): void
+}
+
+class Hygienists extends Staff {
+  +assistAppointment(appointment: Appointments): void
+}
+
+class Secretaries extends Staff {
+  +trackInventory(): void
+  +bookAppointmentForPatient(): void
+  +submitMonthlyReportToMinistry(): void
+}
+
+abstract class Reports {
+  +reportID: int
+  reportType: String
+  staffID: int
+  reportDate: Date
+  --
+  +generateReport(): void
+  +exportAsJSON(): void
+}
+
+class TreatmentProgressReports extends Reports {
+  +generateTreatmentProgress(): void
+}
+
+class RevenueReports extends Reports {
+  +summarizeMonthlyRevenue(): void
+}
+
+class InventoryUsageReport extends Reports {
+  +trackHighDemandItems(): void
+}
+
+' ========== RELATIONSHIPS ==========
+
+Patients "1" o-- "*" MedicalHistories : has
+Patients "1" o-- "*" DentalHistories : has
+Patients "1" o-- "*" InsuranceDetails : holds
+Patients "1" --> "*" Appointments : books
+Patients "1" --> "*" Plans : receives
+Patients "1" --> "*" Invoices : receives
+
+DentalHistories "1" *-- "*" DentalHistoryTreatments : includes
+Plans "1" *-- "*" PlanTreatments : includes
+
+Appointments "*" --> "1" Staff : assigned to
+PlanTreatments "*" --> "1" Staff : performed by
+PlanTreatments "*" --> "1" Treatments : refers to
+DentalHistoryTreatments "*" --> "1" Treatments : documents
+
+Staff "1" o-- "*" Schedules : has
+Reports "*" --> "1" Staff : generated by
+
+Appointments ..> Reasons : reason for
+Appointments ..> AppointmentStatus : has status
+PlanTreatments ..> PlanTreatmentsStatus : has status
+Staff ..> Roles : has role
+Items ..> ItemCategories : categorized as
+Invoices ..> PaymentMethods : uses method
+Dentists ..> Specializations : has specialization
+Staff ..> Qualifications : has qualification
+
+@enduml
